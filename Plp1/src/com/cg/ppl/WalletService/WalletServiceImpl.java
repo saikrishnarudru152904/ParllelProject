@@ -1,7 +1,9 @@
 package com.cg.ppl.WalletService;
 
 import java.time.LocalDateTime;
+import java.util.HashMap;
 
+import com.cg.ppl.WalletDB.WalletDB;
 import com.cg.ppl.bean.Account;
 import com.cg.ppl.walletDao.WalletDao;
 import com.cg.ppl.walletException.WalletDaoImpl;
@@ -9,7 +11,7 @@ import com.cg.ppl.walletException.WalletException;
 
 public class WalletServiceImpl implements WalletService {
 	WalletDao dao = new WalletDaoImpl();
-
+	private static HashMap<String, Account> walletMap = WalletDB.getWalletDb();
 	@Override
 	public String createAccount(Account acc) throws WalletException {
 		if (!acc.getMobileNo().matches("\\d{10}")) {
@@ -74,11 +76,15 @@ public class WalletServiceImpl implements WalletService {
 	public boolean fundTransfer(String sourceMobileNo, String destMobileNo,
 			double transferAmt) throws WalletException {
 		WalletService service = new WalletServiceImpl();
+		
 		if (!sourceMobileNo.matches("\\d{10}")) {
 			throw new WalletException("Mobile number should contain 10 digits");
 			}
 			if (!destMobileNo.matches("\\d{10}")) {
 			throw new WalletException("Mobile number should contain 10 digits");
+			}
+			if((sourceMobileNo==destMobileNo)){
+				throw new WalletException("Mobile number of Source and Destination should not be same");	
 			}
 			
 			Account acc1 = service.withdraw(sourceMobileNo, transferAmt);
@@ -90,6 +96,14 @@ public class WalletServiceImpl implements WalletService {
 	@Override
 	public Account printTransactionDetails(String mobileNo)
 			throws WalletException {
+		Account acc = walletMap.get(mobileNo);
+		
+		if (!mobileNo.matches("\\d{10}")) {
+			throw new WalletException("Mobile number should contain 10 digits");
+			}
+		if (acc == null) {
+			throw new WalletException("The mobile number does not exist");
+			}
 		
 		return  dao.printTransactionDetails(mobileNo);
 	}
